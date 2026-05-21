@@ -163,33 +163,6 @@ plugins:
 </style>
 ```
 
-### 🐍 4.2 Python風構文の子コンポーネント (``src/components/TaxCalculator.mofu``)
-JSの括弧地獄（``{}``）から解放される、インデントベースの美しいコンポーネント記述例です。
-
-```html
-<template>
-  <div class="calculator-card">
-    <h3>{ text }</h3>
-    <input type="number" bind={ price } placeholder="数値を入力してください" />
-  </div>
-</template>
-
-<script lang="py">
-# lang="py" を指定することで、美しいインデントベースのロジックを記述可能
-# 内部ではプリミティブな構文としてパースされ、最速の実行速度へトランスパイルされる
-
-price = 0
-
-def update_price_with_limit(val: int) -> int:
-    global price
-    if val > 1000000:
-        price = 1000000
-    else:
-        price = val
-    return price
-</script>
-```
-
 ---
 
 ## 📂 5. ディレクトリ構造（環境の完全隠蔽）
