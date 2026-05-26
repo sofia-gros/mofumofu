@@ -61,6 +61,10 @@ export class Bundler {
       
       await scanStyles(themeDir);
       
+      // Scan root pages
+      const pagesDir = join(this.projectDir, "pages");
+      await scanStyles(pagesDir);
+      
       // Also write theme style.css as base if exists
       try {
         const baseCSS = await readFile(join(themeDir, "style.css"), "utf-8");

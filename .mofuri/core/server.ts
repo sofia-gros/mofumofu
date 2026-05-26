@@ -1,4 +1,4 @@
-import { watch, type FSWatcher } from "chokidar";
+import { watch, type FSWatcher } from "node:fs";
 import { Compiler } from "./compiler";
 import { join } from "node:path";
 import { readFile, writeFile, readdir } from "node:fs/promises";
@@ -20,7 +20,7 @@ export class DevServer {
   async stop() {
     console.log("\n🛑 Stopping dev server...");
     if (this.watcher) {
-      await this.watcher.close();
+      this.watcher.close();
       this.watcher = null;
     }
     for (const client of this.sseClients) {
@@ -38,14 +38,13 @@ export class DevServer {
     await this.compiler.loadConfig();
     await this.compiler.build();
 
-    // Watch for changes
-    this.watcher = watch(process.cwd(), { 
-      ignored: /dist|\.git|node_modules/,
-      ignoreInitial: true 
-    }).on("change", async (path) => {
-      console.log(`\n♻️ File changed: ${path}. Rebuilding...`);
+    // Watch for changes (Bun native Node-compat watch)
+    this.watcher = watch(process.cwd(), { recursive: true }, async (event, filename) => {
+      if (!filename || filename.match(/dist|\.git|node_modules/)) return;
+      
+      console.log(`\n♻️ File changed: ${filename}. Rebuilding...`);
       try {
-        await this.compiler.buildFile(path);
+        await this.compiler.buildFile(filename);
         // Notify clients to reload
         this.notifyClients("reload");
       } catch (e) {

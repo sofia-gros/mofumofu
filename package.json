@@ -2,17 +2,16 @@
   "name": "mofuri",
   "version": "0.1.0",
   "description": "Next-Gen Static Site Generator",
-  "main": "src/cli/index.ts",
+  "main": ".mofuri/cli/index.ts",
   "type": "module",
   "bin": {
-    "mofuri": "./bin/mofuri"
+    "mofuri": ".mofuri/cli/index.ts"
   },
   "dependencies": {
     "commander": "^12.0.0",
     "front-matter": "^4.0.2",
     "marked": "^12.0.0",
-    "yaml": "^2.4.0",
-    "chokidar": "^3.6.0"
+    "yaml": "^2.4.0"
   },
   "devDependencies": {
     "bun-types": "latest",

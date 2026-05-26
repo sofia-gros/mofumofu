@@ -1,10 +1,8 @@
 /** @jsxImportSource .. */
 import { jsx } from "../jsx-runtime";
-// During core development, we import from src/templates.
-// When running in a project, these would be accessible differently, 
-// but for Admin UI we use the builtin versions.
-import Button from "../../templates/themes/default/components/button";
-import Input from "../../templates/themes/default/components/input";
+// Use root themes directory for Admin UI components
+import Button from "../../../themes/default/components/button";
+import Input from "../../../themes/default/components/input";
 
 export function AdminGUI() {
   return (
