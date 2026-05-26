@@ -50,7 +50,7 @@ mofuri Coreは「md ➔ 中間HTML ➔ 最終HTML」の2段階コンパイルパ
 ## 🔌 拡張機能 (Theme & Plugin)
 ### 🎨 テーマの仕組み (.mofuri)
 テーマは画面全体の「器（うつわ）」を定義します。VueやSvelteに馴染んだ3分割構文を採用しています [cite: 192, 211]。
-
+```svelte
 <!-- themes/my-theme/pages/single.mofuri -->
 <script type="server">
   // ビルド時に実行されるサーバーサイドロジック
@@ -67,6 +67,7 @@ mofuri Coreは「md ➔ 中間HTML ➔ 最終HTML」の2段階コンパイルパ
   // クライアント側で動作する最小限のJS
   console.log("mofuri Loaded!");
 </script>
+```
 
 ### 🧩 プラグインの仕組み (.tsx)
 プラグインは、ロジックと部品を担当します。「必須ID規格（Required ID）」に基づき、Materialize CSSを参考にした共通部品を型安全に提供します [cite: 132, 140, 142]。
@@ -77,7 +78,7 @@ mofuri Coreは「md ➔ 中間HTML ➔ 最終HTML」の2段階コンパイルパ
 --------------------------------------------------------------------------------
 ## 📑 API記述テンプレート (manifest.yaml)
 プラグインは manifest.yaml でその振る舞いを定義し、Coreが主導権を握ったまま安全に実行されます [cite: 34, 35, 36]。
-
+```yaml
 # plugins/my-plugin/manifest.yaml
 id: my-github-card
 version: 1.0.0
@@ -85,7 +86,7 @@ author: sofia-gros
 entry: index.tsx
 permissions:
   - fs:readPage   # 許可されたAPIフックを定義 [cite: 30, 35]
-
+```
 
 --------------------------------------------------------------------------------
 ## 📝 ユーザー・開発者の役割分担
