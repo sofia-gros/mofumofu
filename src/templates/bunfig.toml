@@ -1,0 +1,3 @@
+[jsx]
+runtime = "automatic"
+import-source = "./.mofuri/src/core"

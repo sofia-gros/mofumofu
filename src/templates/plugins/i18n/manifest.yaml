@@ -1,0 +1,5 @@
+id: i18n
+version: 1.0.0
+author: core
+description: Default internationalization plugin
+entry: context.ts

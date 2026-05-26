@@ -1,0 +1,29 @@
+<script type="server">
+  // posts is provided by the compiler
+</script>
+
+<template>
+  <!DOCTYPE html>
+  <html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>${siteName}</title>
+  </head>
+  <body>
+    <header>
+      <h1>${siteName}</h1>
+    </header>
+    <main>
+      <h2>記事一覧</h2>
+      <ul>
+        ${posts.map(p => `<li><a href="/${p.slug}">${p.title}</a></li>`).join("")}
+      </ul>
+    </main>
+  </body>
+  </html>
+</template>
+
+<style>
+  body { font-family: sans-serif; padding: 2rem; }
+  h1 { color: #f26; }
+</style>

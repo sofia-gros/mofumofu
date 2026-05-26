@@ -1,0 +1,6 @@
+name: "GitHub Plugin"
+version: "1.0.0"
+description: "Adds [GithubCard] shortcode and <m-github-card /> component."
+author: "Mofuri Team"
+settings:
+  cacheDuration: 3600
