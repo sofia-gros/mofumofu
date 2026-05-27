@@ -26,6 +26,20 @@ export class Bundler {
     // 2. Aggregate CSS from theme and components
     await this.bundleCSS();
 
+    // 3. Copy theme assets if they exist
+    const configPath = join(this.projectDir, "mofuri.yaml");
+    try {
+      const configContent = await readFile(configPath, "utf-8");
+      const { parse } = await import("yaml");
+      const config = parse(configContent);
+      const themeAssetsDir = join(this.projectDir, "themes", config.theme, "assets");
+      const distAssetsDir = join(this.distDir, "assets");
+      
+      await mkdir(distAssetsDir, { recursive: true });
+      await cp(themeAssetsDir, distAssetsDir, { recursive: true });
+      console.log(`  📂 Copied theme assets from ${config.theme}`);
+    } catch (e) {}
+
     console.log("✅ Assets bundled!");
   }
 

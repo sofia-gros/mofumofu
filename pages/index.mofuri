@@ -8,22 +8,35 @@
   <head>
     <meta charset="UTF-8">
     <title>${siteName}</title>
+    <link rel="stylesheet" href="/assets/element-plus.min.css">
+    <link rel="stylesheet" href="/style.css">
   </head>
-  <body>
-    <header>
-      <h1>${siteName}</h1>
+  <body class="el-main">
+    <header class="el-header">
+      <div class="mofuri-container" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <h1 style="color: #409EFF; margin: 0;">${siteName}</h1>
+      </div>
     </header>
-    <main>
-      <h2>記事一覧</h2>
-      <ul>
-        ${posts.map(p => `<li><a href="/${p.slug}">${p.title}</a></li>`).join("")}
-      </ul>
+    
+    <main class="mofuri-container">
+      <div class="el-card is-never-shadow" style="padding: 20px;">
+        <h2 style="margin-top: 0;">記事一覧</h2>
+        <ul style="list-style: none; padding: 0;">
+          ${posts.map(p => `
+            <li style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ebeef5;">
+              <a href="/${p.slug}" style="font-size: 1.2rem; font-weight: 500;">
+                ${p.title}
+              </a>
+              <div style="font-size: 0.8rem; color: #909399; margin-top: 5px;">${new Date(p.date).toLocaleDateString('ja-JP')}</div>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
     </main>
+
+    <footer>
+      <p>&copy; 2026 ${siteName} - Built with Mofuri</p>
+    </footer>
   </body>
   </html>
 </template>
-
-<style>
-  body { font-family: sans-serif; padding: 2rem; }
-  h1 { color: #f26; }
-</style>

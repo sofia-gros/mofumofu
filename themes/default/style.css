@@ -1,0 +1,67 @@
+/* Mofuri Aggregated CSS */
+
+/* Global Reset & Typography */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #f5f7fa;
+  color: #303133;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* Site Layout */
+.el-main {
+  min-height: 100vh;
+}
+
+header.el-header {
+  background-color: white;
+  border-bottom: 1px solid #dcdfe6;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Content Area */
+.mofuri-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.mofuri-content {
+  color: #303133;
+}
+
+.mofuri-content h1, 
+.mofuri-content h2, 
+.mofuri-content h3 {
+  color: #1f2d3d;
+  margin-top: 2rem;
+}
+
+.mofuri-content h2 {
+  border-left: 4px solid #409EFF;
+  padding-left: 15px;
+}
+
+/* Link Styling */
+a {
+  color: #409EFF;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #66b1ff;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: #909399;
+  font-size: 0.9rem;
+}

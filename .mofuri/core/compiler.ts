@@ -174,6 +174,12 @@ export class Compiler {
     console.log("✅ Build completed!");
   }
 
+  async buildFile(filename: string) {
+    // For now, simpler to just trigger full build to ensure consistency
+    // but we could optimize this later.
+    await this.build();
+  }
+
   private async parsePost(file: string): Promise<PostData | null> {
     try {
       const postsDir = join(this.projectDir, "posts");
@@ -186,7 +192,9 @@ export class Compiler {
   private async processCustomTags(html: string): Promise<string> {
     let result = html;
     const mTagRegex = /<m-([a-z0-9-]+)\s*([^>]*?)\s*(?:\/|>([\s\S]*?)<\/m-\1)>/gi;
-    const shortcodeRegex = /\[([A-Z][a-zA-Z0-9-]+)\s*([^\]]*?)\]/g;
+    // Updated shortcode regex to capture both tag and attributes better
+    const shortcodeRegex = /\[([a-z0-9-]+)\s*([^\]]*?)\]/g;
+
     const process = async (tagName: string, attrString: string, content?: string) => {
       const attrs: Record<string, string> = {};
       if (attrString) {
@@ -198,18 +206,38 @@ export class Compiler {
         }
       }
       const kebabName = tagName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-      return await this.renderComponent(kebabName, attrs, content || "");
+      
+      // Recursively process nested tags in content
+      let processedContent = content || "";
+      if (processedContent) {
+        processedContent = await this.processCustomTags(processedContent);
+        processedContent = await marked(processedContent.trim());
+      }
+      
+      return await this.renderComponent(kebabName, attrs, processedContent);
     };
-    const mMatches = Array.from(html.matchAll(mTagRegex));
-    for (const match of mMatches) {
-      const [fullTag, tagName, attrString, content] = match;
-      if (tagName && attrString !== undefined) result = result.replace(fullTag, await process(tagName, attrString, content));
+
+    let hasMatches = true;
+    while (hasMatches) {
+      const mMatch = mTagRegex.exec(result);
+      if (mMatch) {
+        const [fullTag, tagName, attrString, content] = mMatch;
+        const replacement = await process(tagName, attrString, content);
+        result = result.replace(fullTag, replacement);
+        mTagRegex.lastIndex = 0;
+      } else {
+        const sMatch = shortcodeRegex.exec(result);
+        if (sMatch) {
+          const [fullTag, tagName, attrString] = sMatch;
+          const replacement = await process(tagName, attrString);
+          result = result.replace(fullTag, replacement);
+          shortcodeRegex.lastIndex = 0;
+        } else {
+          hasMatches = false;
+        }
+      }
     }
-    const sMatches = Array.from(result.matchAll(shortcodeRegex));
-    for (const match of sMatches) {
-      const [fullTag, tagName, attrString] = match;
-      if (tagName && attrString !== undefined) result = result.replace(fullTag, await process(tagName, attrString));
-    }
+
     return result;
   }
 
@@ -228,7 +256,8 @@ export class Compiler {
       if (!componentPath) return `<!-- Component m-${name} not found -->`;
     }
     try {
-      const module = await import(componentPath);
+      // Use query param to bypass Bun/Node import cache during dev
+      const module = await import(`${componentPath}?update=${Date.now()}`);
       const Component = module.default || module[name.replace(/-/g, "")];
       if (typeof Component === "function") return Component({ ...this.globalContext, ...props, children: content }).toString();
       return `<!-- m-${name} is not a valid component -->`;

@@ -1,25 +1,23 @@
 /**
- * 基本的な入力フィールドコンポーネントです。
+ * テキスト入力フィールドを表示します。
  */
-export default function Input({ label, value, onChange, placeholder = "", type = "text" }: any) {
+interface InputProps {
+  placeholder?: string;
+  type?: string;
+  value?: string;
+}
+
+export default function Input({ placeholder = "入力してください", type = "text", value = "" }: InputProps) {
   return (
-    <div style={{ marginBottom: "1rem" }}>
-      {label && <label style={{ display: "block", fontSize: "0.75rem", fontWeight: "700", color: "#64748b", marginBottom: "0.375rem", textTransform: "uppercase" }}>{label}</label>}
-      <input 
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        style={{
-          width: "100%",
-          padding: "0.5rem 0.75rem",
-          borderRadius: "0.375rem",
-          border: "1px solid #e2e8f0",
-          fontSize: "0.875rem",
-          outline: "none",
-          transition: "border-color 0.2s"
-        }}
-      />
+    <div class="el-input" style="margin: 1rem 0;">
+      <div class="el-input__wrapper">
+        <input 
+          class="el-input__inner" 
+          type={type} 
+          placeholder={placeholder} 
+          value={value} 
+        />
+      </div>
     </div>
   );
 }

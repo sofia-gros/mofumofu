@@ -8,30 +8,32 @@
   <head>
     <meta charset="UTF-8">
     <title>${post.title} | ${siteName}</title>
+    <link rel="stylesheet" href="/assets/element-plus.min.css">
     <link rel="stylesheet" href="/style.css">
   </head>
-  <body>
-    <header>
-      <h1>${siteName}</h1>
+  <body class="el-main">
+    <header class="el-header">
+      <div class="mofuri-container" style="display: flex; align-items: center; width: 100%;">
+        <a href="/" style="margin-right: 20px;">← Home</a>
+        <h1 style="color: #409EFF; margin: 0; font-size: 1.25rem;">${siteName}</h1>
+      </div>
     </header>
-    <main>
-      <article>
-        <h1>${post.title}</h1>
-        <div>${post.content}</div>
-      </article>
+
+    <main class="mofuri-container">
+      <div class="el-card is-always-shadow" style="padding: 20px;">
+        <h1 style="margin-top: 0;">${post.title}</h1>
+        <div style="color: #909399; margin-bottom: 20px;">
+          Published: ${new Date(post.date).toLocaleDateString('ja-JP')}
+        </div>
+        <div class="mofuri-content">
+          ${post.content}
+        </div>
+      </div>
     </main>
+
     <footer>
-      <p>&copy; 2024 ${siteName}</p>
+      <p>&copy; 2026 ${siteName} - Built with Mofuri</p>
     </footer>
   </body>
   </html>
 </template>
-
-<script>
-  console.log("Mofuri theme loaded");
-</script>
-
-<style>
-  body { font-family: sans-serif; padding: 2rem; background: #fafafa; color: #333; }
-  h1 { color: #f26; }
-</style>

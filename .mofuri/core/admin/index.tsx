@@ -10,6 +10,7 @@ export function AdminGUI() {
       <head>
         <meta charset="UTF-8" />
         <title>Mofuri Admin</title>
+        <link rel="stylesheet" href="/assets/element-plus.min.css" />
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
         <AdminStyles />
