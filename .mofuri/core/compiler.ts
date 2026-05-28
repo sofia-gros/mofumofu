@@ -29,6 +29,7 @@ export class Compiler {
   private projectDir: string;
   private themeDir!: string;
   private globalContext: Record<string, any> = {};
+  private collectedStyles: string[] = [];
 
   constructor(projectDir: string = process.cwd()) {
     this.projectDir = projectDir;
@@ -273,6 +274,12 @@ export class Compiler {
     return { serverScript, template, clientScript, style };
   }
 
+  private registerStyle(css: string) {
+    if (!this.collectedStyles.includes(css)) {
+      this.collectedStyles.push(css);
+    }
+  }
+
   private async renderTemplate(sfc: any, context: any) {
     const keys = ["post", "posts", "siteName", ...Object.keys(this.globalContext)];
     const values = [context.post, context.posts, context.siteName, ...Object.values(this.globalContext)];
@@ -285,7 +292,7 @@ export class Compiler {
       try { return new Function(...sKeys, `return \`${tpl}\`;`)(...sValues); } catch (error: any) { return tpl; }
     };
     html = evalTemplate(html, data);
-    const styleTag = sfc.style ? `<style>${sfc.style}</style>` : "";
+    const styleTag = `<style>${[sfc.style, ...this.collectedStyles].join("\n")}</style>`;
     const scriptTag = sfc.clientScript ? `<script>${sfc.clientScript}</script>` : "";
     if (html.includes("</head>")) html = html.replace("</head>", `${styleTag}\n</head>`);
     else if (html.includes("<head>")) html = html.replace("<head>", `<head>\n${styleTag}`);

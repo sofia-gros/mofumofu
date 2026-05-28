@@ -5,7 +5,7 @@
     "module": "ESNext",
     "moduleDetection": "force",
     "jsx": "react-jsx",
-    "jsxImportSource": "A:/Project/mofuri/.mofuri/core",
+    "jsxImportSource": "mofuri-core",
     "allowJs": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

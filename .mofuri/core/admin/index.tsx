@@ -3,6 +3,11 @@ import { jsx } from "../jsx-runtime";
 // Use root themes directory for Admin UI components
 import Button from "../../../themes/default/components/button";
 import Input from "../../../themes/default/components/input";
+import Row from "../../../themes/default/components/row";
+import Col from "../../../themes/default/components/col";
+import Card from "../../../themes/default/components/card";
+import Tabs from "../../../themes/default/components/tabs";
+import Toolbar from "../../../themes/default/components/toolbar";
 
 export function AdminGUI() {
   return (
@@ -51,14 +56,17 @@ export function AdminGUI() {
               <p style="color:#64748b; font-size:0.9375rem;">Manage your site configuration and content extensions.</p>
             </header>
             <div id="settings-content" style="display:grid; gap:2rem;">
-              <div class="settings-section">
+              <Card>
                  <h3>Global Configuration</h3>
-                 <div id="global-settings"></div>
-              </div>
-              <div class="settings-section">
+                 <div id="global-settings" style="display:grid; gap:1rem;"></div>
+              </Card>
+              <Card>
                  <h3>Active Plugins</h3>
                  <div id="plugins-list" style="display:grid; gap:1rem;"></div>
-              </div>
+                 <div style="margin-top:1rem;">
+                   <Button onClick="saveSettings()" variant="primary">Save Configuration</Button>
+                 </div>
+              </Card>
             </div>
           </div>
         </div>
@@ -70,13 +78,17 @@ export function AdminGUI() {
 }
 
 function AdminHeader() {
+  const items = [
+    { label: 'Post Editor', id: 'editor', active: true },
+    { label: 'Component Docs', id: 'docs' },
+    { label: 'Settings', id: 'settings' }
+  ];
+
   return (
     <header>
       <div class="nav">
         <h1 onclick="switchTab('editor')" style="cursor:pointer">🐾 mofuri</h1>
-        <div id="nav-editor" class="nav-item active" onclick="switchTab('editor')">Post Editor</div>
-        <div id="nav-docs" class="nav-item" onclick="switchTab('docs')">Component Docs</div>
-        <div id="nav-settings" class="nav-item" onclick="switchTab('settings')">Settings</div>
+        <Tabs items={items} onSelect={(id: string) => (window as any).switchTab(id)} />
       </div>
       <div id="file-info" style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;"></div>
     </header>
@@ -94,34 +106,37 @@ function AdminSidebar({ title, id, children }: any) {
 
 function AdminEditorLayout() {
   return (
-    <main id="editor-layout" style="display:none; grid-template-columns: 1fr 1fr; flex:1; overflow:hidden;">
-      <div id="editor-wrapper" class="editor-area">
-        <div class="toolbar">
-           <Button onClick="editor.chain().focus().toggleBold().run()" variant="secondary"><b>B</b></Button>
-           <Button onClick="editor.chain().focus().toggleItalic().run()" variant="secondary"><i>I</i></Button>
-           <Button onClick="editor.chain().focus().toggleHeading({ level: 1 }).run()" variant="secondary">H1</Button>
-           <Button onClick="editor.chain().focus().toggleHeading({ level: 2 }).run()" variant="secondary">H2</Button>
-           <div style="flex:1"></div>
-           <Button onClick="editor.chain().focus().undo().run()" variant="secondary">Undo</Button>
-        </div>
-        
-        <div id="editor" class="tiptap-container"></div>
-        
-        <div class="footer-actions">
-          <div class="status-badge">
-            <div id="status-dot" class="status-dot"></div>
-            <span id="status-text">Ready</span>
-          </div>
-          <Button onClick="savePost()" id="save-btn">Save Changes</Button>
-        </div>
-      </div>
-
-      <div class="preview-area">
-         <div class="toolbar" style="justify-content:center; font-weight:700; font-size:0.625rem; letter-spacing:0.1em; color:#94a3b8; text-transform:uppercase;">
-           Live Preview
-         </div>
-         <div id="preview" class="preview-content"></div>
-      </div>
+    <main id="editor-layout" style="display:none; flex:1; overflow:hidden;">
+      <Row>
+        <Col span={12}>
+           <Card style="margin: 1rem; height: calc(100vh - 120px);">
+             <Toolbar>
+               <Button onClick="editor.chain().focus().toggleBold().run()" variant="secondary"><b>B</b></Button>
+               <Button onClick="editor.chain().focus().toggleItalic().run()" variant="secondary"><i>I</i></Button>
+               <Button onClick="editor.chain().focus().toggleHeading({ level: 1 }).run()" variant="secondary">H1</Button>
+               <Button onClick="editor.chain().focus().toggleHeading({ level: 2 }).run()" variant="secondary">H2</Button>
+               <div style="flex:1"></div>
+               <Button onClick="editor.chain().focus().undo().run()" variant="secondary">Undo</Button>
+             </Toolbar>
+             <div id="editor" class="tiptap-container"></div>
+             <div class="footer-actions">
+               <div class="status-badge">
+                 <div id="status-dot" class="status-dot"></div>
+                 <span id="status-text">Ready</span>
+               </div>
+               <Button onClick="savePost()" id="save-btn">Save Changes</Button>
+             </div>
+           </Card>
+        </Col>
+        <Col span={12}>
+          <Card style="margin: 1rem 1rem 1rem 0; height: calc(100vh - 120px);">
+             <div class="toolbar" style="justify-content:center; font-weight:700; font-size:0.625rem; letter-spacing:0.1em; color:#94a3b8; text-transform:uppercase;">
+               Live Preview
+             </div>
+             <div id="preview" class="preview-content"></div>
+          </Card>
+        </Col>
+      </Row>
     </main>
   );
 }
@@ -229,25 +244,48 @@ function AdminScripts() {
       async function loadSettings() {
         const res = await fetch('/api/settings');
         const data = await res.json();
-        
-        // Render Global Settings
-        document.getElementById('global-settings').innerHTML = \`
-          <div style="font-size:0.875rem; color:#475569;">
-            <p><strong>Site Name:</strong> \${data.config.siteName}</p>
-            <p><strong>Theme:</strong> \${data.config.theme}</p>
-          </div>
-        \`;
+        window.currentConfig = data.config;
 
-        // Render Plugins
-        document.getElementById('plugins-list').innerHTML = data.plugins.map(p => \`
-          <div class="plugin-card">
-            <div class="plugin-info">
-              <h4>\${p.name || p.id}</h4>
-              <p>\${p.description || 'No description'}</p>
-            </div>
-            <div style="font-size:0.75rem; color:#94a3b8;">v\${p.version || '0.0.0'}</div>
-          </div>
-        \`).join('') || '<p style="color:#94a3b8; font-size:0.875rem;">No plugins installed.</p>';
+        document.getElementById('global-settings').innerHTML = 
+          '<div class="setting-item" style="display:grid; gap:0.5rem;">' +
+            '<label style="font-size:0.875rem; font-weight:600;">Site Name</label>' +
+            '<input type="text" id="cfg-siteName" value="' + data.config.siteName + '" style="padding:0.5rem; border:1px solid #e2e8f0; border-radius:0.25rem;">' +
+          '</div>' +
+          '<div class="setting-item" style="display:grid; gap:0.5rem;">' +
+            '<label style="font-size:0.875rem; font-weight:600;">Theme</label>' +
+            '<input type="text" id="cfg-theme" value="' + data.config.theme + '" style="padding:0.5rem; border:1px solid #e2e8f0; border-radius:0.25rem;">' +
+          '</div>';
+
+        document.getElementById('plugins-list').innerHTML = data.plugins.map(p => 
+          '<div class="plugin-card">' +
+            '<div class="plugin-info">' +
+              '<h4>' + (p.name || p.id) + '</h4>' +
+              '<p>' + (p.description || 'No description') + '</p>' +
+            '</div>' +
+            '<div style="font-size:0.75rem; color:#94a3b8;">v' + (p.version || '0.0.0') + '</div>' +
+          '</div>'
+        ).join('') || '<p style="color:#94a3b8; font-size:0.875rem;">No plugins installed.</p>';
+      }
+
+      window.saveSettings = async function() {
+        const newConfig = {
+          ...window.currentConfig,
+          siteName: document.getElementById('cfg-siteName').value,
+          theme: document.getElementById('cfg-theme').value
+        };
+
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newConfig)
+        });
+
+        if (res.ok) {
+          alert('Settings saved!');
+          loadSettings();
+        } else {
+          alert('Failed to save settings');
+        }
       }
 
       async function loadDocs() {
@@ -276,7 +314,7 @@ function AdminScripts() {
           previewTimeout = setTimeout(async () => {
               const html = window.editor.getHTML();
               const markdownBody = turndownService.turndown(html);
-              const fullMarkdown = (window.currentFM || '') + '\\n\\n' + markdownBody;
+              const fullMarkdown = (window.currentFM || '') + 'nn' + markdownBody;
               
               const res = await fetch('/api/preview', {
                   method: 'POST',
@@ -310,7 +348,7 @@ function AdminScripts() {
         const res = await fetch('/api/post-content?path=' + path);
         const markdown = await res.text();
         
-        const fmMatch = markdown.match(/^---\\n([\\s\\S]*?)\\n---/);
+        const fmMatch = markdown.match(/^---n([sS]*?)n---/);
         let fm = '';
         let body = markdown;
         if (fmMatch) {
@@ -334,7 +372,7 @@ function AdminScripts() {
         try {
           const html = window.editor.getHTML();
           const markdownBody = turndownService.turndown(html);
-          const fullMarkdown = (window.currentFM || '') + '\\n\\n' + markdownBody;
+          const fullMarkdown = (window.currentFM || '') + 'nn' + markdownBody;
           const res = await fetch('/api/save-post', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

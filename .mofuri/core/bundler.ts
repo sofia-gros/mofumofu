@@ -78,6 +78,15 @@ export class Bundler {
       // Scan root pages
       const pagesDir = join(this.projectDir, "pages");
       await scanStyles(pagesDir);
+
+      // Scan plugins
+      const pluginsDir = join(this.projectDir, "plugins");
+      try {
+        const plugins = await readdir(pluginsDir);
+        for (const p of plugins) {
+          await scanStyles(join(pluginsDir, p));
+        }
+      } catch {}
       
       // Also write theme style.css as base if exists
       try {
@@ -89,6 +98,7 @@ export class Bundler {
       
       // 3. Minify CSS if in production mode (simplified check)
       try {
+        // Bun.build for CSS works well now
         const build = await Bun.build({
           entrypoints: [join(this.distDir, "style.css")],
           outdir: this.distDir,

@@ -163,6 +163,17 @@ export class DevServer {
           }
         }
 
+        if (url.pathname === "/api/settings" && req.method === "POST") {
+          try {
+            const body = await req.json();
+            const configPath = join(process.cwd(), "mofuri.yaml");
+            await writeFile(configPath, yamlStringify(body), "utf-8");
+            return new Response(JSON.stringify({ success: true }));
+          } catch (e) {
+            return new Response("Save failed", { status: 500 });
+          }
+        }
+
         // Fast Reload: SSE Endpoint
         if (url.pathname === "/api/sse") {
           return new Response(new ReadableStream({

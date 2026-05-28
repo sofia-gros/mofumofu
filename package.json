@@ -7,11 +7,19 @@
   "bin": {
     "mofuri": ".mofuri/cli/index.ts"
   },
+  "imports": {
+    "#core/*.ts": "./.mofuri/core/*.ts",
+    "#core/*": "./.mofuri/core/*"
+  },
+  "workspaces": [
+    ".mofuri/core"
+  ],
   "dependencies": {
     "commander": "^12.0.0",
     "front-matter": "^4.0.2",
     "marked": "^12.0.0",
-    "yaml": "^2.4.0"
+    "yaml": "^2.4.0",
+    "mofuri-core": "workspace:*"
   },
   "devDependencies": {
     "bun-types": "latest",
