@@ -283,13 +283,74 @@ export class Compiler {
   private async renderTemplate(sfc: any, context: any) {
     const keys = ["post", "posts", "siteName", ...Object.keys(this.globalContext)];
     const values = [context.post, context.posts, context.siteName, ...Object.values(this.globalContext)];
-    const serverFn = new Function(...keys, `let exports = {}; ${sfc.serverScript}; return { post, posts, siteName, ...exports };`);
-    const data = { ...this.globalContext, ...serverFn(...values) };
+    
+    // Transpile static imports to dynamic imports for simple cases in server scripts
+    const transpiledScript = sfc.serverScript.replace(
+      /import\s+({[\s\S]+?}|[*]\s+as\s+\w+|\w+)\s+from\s+(['"])(.+?)\2;?/g,
+      (match: string, imports: string, quote: string, path: string) => {
+        if (imports.startsWith('{')) return `const ${imports} = await import('${path}');`;
+        if (imports.startsWith('*')) return `const ${imports.replace('* as ', '')} = await import('${path}');`;
+        return `const { default: ${imports} } = await import('${path}');`;
+      }
+    );
+
+    // Wrap server script in an async IIFE to support top-level await
+    const serverScript = `(async () => { let exports = {}; ${transpiledScript}; return { post, posts, siteName, ...exports }; })()`;
+    let data = { ...this.globalContext };
+    try {
+      const result = await new Function(...keys, `return ${serverScript}`)(...values);
+      data = { ...data, ...result };
+    } catch (e) {
+      console.error("Server Script Error:", e);
+    }
+    
     let html = sfc.template;
     const evalTemplate = (tpl: string, scope: any) => {
       const sKeys = Object.keys(scope);
       const sValues = Object.values(scope);
-      try { return new Function(...sKeys, `return \`${tpl}\`;`)(...sValues); } catch (error: any) { return tpl; }
+      
+      let result = "";
+      let i = 0;
+      while (i < tpl.length) {
+        const start = tpl.indexOf("${", i);
+        if (start === -1) {
+          result += tpl.substring(i);
+          break;
+        }
+        result += tpl.substring(i, start);
+        
+        let depth = 1;
+        let end = -1;
+        let inString: string | null = null;
+        for (let j = start + 2; j < tpl.length; j++) {
+          const char = tpl[j];
+          if (!inString) {
+            if (char === "'" || char === '"' || char === "`") inString = char;
+            else if (char === "{") depth++;
+            else if (char === "}") {
+              depth--;
+              if (depth === 0) { end = j; break; }
+            }
+          } else if (char === inString && tpl[j-1] !== "\\") {
+            inString = null;
+          }
+        }
+        
+        if (end === -1) {
+          result += tpl.substring(start);
+          break;
+        }
+        
+        const expr = tpl.substring(start + 2, end);
+        try {
+          const val = new Function(...sKeys, `return (${expr});`)(...sValues);
+          result += (val === undefined || val === null) ? "" : val;
+        } catch (e) {
+          result += tpl.substring(start, end + 1);
+        }
+        i = end + 1;
+      }
+      return result;
     };
     html = evalTemplate(html, data);
     const styleTag = `<style>${[sfc.style, ...this.collectedStyles].join("\n")}</style>`;
@@ -302,9 +363,8 @@ export class Compiler {
     return html;
   }
 
-  async compileMarkdown(content: string) {
-    const { body } = fm(content) as { body: string };
-    const html = await marked(body);
-    return await this.processCustomTags(html);
+  async renderMofuri(path: string, context: any) {
+    const sfc = await this.parseMofuriSFC(path);
+    return await this.renderTemplate(sfc, context);
   }
 }

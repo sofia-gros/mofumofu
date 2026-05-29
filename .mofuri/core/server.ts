@@ -3,7 +3,6 @@ import { Compiler } from "./compiler";
 import { join } from "node:path";
 import { readFile, writeFile, readdir } from "node:fs/promises";
 import { parse as yamlParse } from "yaml";
-import { AdminGUI } from "./admin/index";
 
 export class DevServer {
   private compiler: Compiler;
@@ -71,7 +70,7 @@ export class DevServer {
         
         // Admin GUI
         if (url.pathname === "/mofuri-admin") {
-          return new Response(await getAdminHTML(), {
+          return new Response(await getAdminHTML(this.compiler), {
             headers: { "Content-Type": "text/html; charset=utf-8" }
           });
         }
@@ -246,6 +245,6 @@ export class DevServer {
   }
 }
 
-async function getAdminHTML() {
-  return AdminGUI() as any as string;
+async function getAdminHTML(compiler: Compiler) {
+  return await compiler.renderMofuri(".mofuri/admin.mofuri", {});
 }

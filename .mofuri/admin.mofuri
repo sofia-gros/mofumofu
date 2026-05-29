@@ -1,0 +1,453 @@
+<script type="server">
+  import { readdir } from "node:fs/promises";
+  import { join } from "node:path";
+  const posts = await readdir(join(process.cwd(), "posts"));
+  exports.posts = posts;
+</script>
+
+<template>
+  <html lang="ja">
+    <head>
+      <meta charset="UTF-8" />
+      <title>Mofuri Admin</title>
+      <link rel="stylesheet" href="/assets/element-plus.min.css" />
+      <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+      <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+      <style>
+        :root {
+          --border-color: #e2e8f0;
+          --text-main: #1e293b;
+          --text-muted: #64748b;
+          --accent: #f26;
+        }
+        body {
+          font-family:
+            "Inter",
+            system-ui,
+            -apple-system,
+            sans-serif;
+          padding: 0;
+          margin: 0;
+          background: #f8fafc;
+          height: 100vh;
+          display: flex;
+          flex-direction: column;
+          color: var(--text-main);
+        }
+        header {
+          background: white;
+          border-bottom: 1px solid var(--border-color);
+          padding: 0.5rem 2rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          z-index: 10;
+        }
+        header h1 {
+          color: var(--accent);
+          margin: 0;
+          font-size: 1.25rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: 800;
+          text-transform: lowercase;
+        }
+        header .nav {
+          display: flex;
+          gap: 1.5rem;
+          align-items: center;
+        }
+        header .nav-item {
+          cursor: pointer;
+          padding: 0.5rem 0;
+          border-bottom: 2px solid transparent;
+          font-weight: 600;
+          color: var(--text-muted);
+          font-size: 0.875rem;
+          transition: all 0.2s;
+        }
+        header .nav-item.active {
+          color: var(--accent);
+          border-bottom-color: var(--accent);
+        }
+
+        .main-container {
+          display: grid;
+          grid-template-columns: 250px 1fr 1fr;
+          flex: 1;
+          min-height: 0;
+        }
+
+        .sidebar {
+          background: white;
+          border-right: 1px solid var(--border-color);
+          padding: 1.5rem;
+          overflow-y: auto;
+        }
+        .sidebar h3 {
+          margin-top: 0;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--text-muted);
+          margin-bottom: 1rem;
+        }
+
+        .post-item {
+          padding: 0.625rem 0.875rem;
+          border-radius: 0.375rem;
+          cursor: pointer;
+          margin-bottom: 0.25rem;
+          transition: all 0.2s;
+          font-size: 0.875rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          border: 1px solid transparent;
+          color: #475569;
+        }
+        .post-item:hover {
+          background: #f1f5f9;
+          color: var(--text-main);
+        }
+        .post-item.active {
+          background: #fff1f2;
+          color: var(--accent);
+          border-color: #fecdd3;
+          font-weight: 600;
+        }
+
+        .tiptap-editor {
+          display: flex;
+          flex-direction: column;
+          background: white;
+          margin: 1rem;
+          border: 1px solid var(--border-color);
+          border-radius: 0.75rem;
+          overflow: hidden;
+          height: calc(100vh - 120px);
+        }
+        .toolbar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.25rem;
+          padding: 0.5rem;
+          border-bottom: 1px solid var(--border-color);
+          background: #f8fafc;
+        }
+        .toolbar button {
+          padding: 0.4rem 0.6rem;
+          border: 1px solid var(--border-color);
+          background: white;
+          border-radius: 0.25rem;
+          cursor: pointer;
+          font-size: 0.85rem;
+        }
+        .toolbar button:hover {
+          background: #f1f5f9;
+        }
+
+        .ProseMirror {
+          outline: none;
+          padding: 1.5rem;
+          min-height: 100%;
+          flex: 1;
+          overflow-y: auto;
+        }
+        .ProseMirror p.is-editor-empty:first-child::before {
+          content: attr(data-placeholder);
+          float: left;
+          color: #cbd5e1;
+          pointer-events: none;
+          height: 0;
+        }
+
+        .preview-area {
+          background: white;
+          margin: 1rem 1rem 1rem 0;
+          border: 1px solid var(--border-color);
+          border-radius: 0.75rem;
+          overflow: hidden;
+          height: calc(100vh - 120px);
+          display: flex;
+          flex-direction: column;
+        }
+        .preview-content {
+          flex: 1;
+          overflow-y: auto;
+          padding: 1.5rem;
+        }
+
+        .footer-actions {
+          border-top: 1px solid var(--border-color);
+          padding: 0.75rem 1.5rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: #f8fafc;
+        }
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #cbd5e1;
+          display: inline-block;
+          margin-right: 0.5rem;
+        }
+        .status-dot.active {
+          background: #22c55e;
+        }
+      </style>
+    </head>
+    <body>
+      <header>
+        <div class="nav">
+          <h1 onclick="switchTab('editor')" style="cursor:pointer">
+            🐾 mofuri
+          </h1>
+          <div
+            class="nav-item active"
+            id="nav-editor"
+            onclick="switchTab('editor')"
+          >
+            Editor
+          </div>
+          <div class="nav-item" id="nav-docs" onclick="switchTab('docs')">
+            Docs
+          </div>
+          <div
+            class="nav-item"
+            id="nav-settings"
+            onclick="switchTab('settings')"
+          >
+            Settings
+          </div>
+        </div>
+        <div
+          id="file-info"
+          style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;"
+        ></div>
+      </header>
+
+      <div id="view-editor" class="main-container">
+        <aside class="sidebar">
+          <h3>Posts</h3>
+          <div id="posts-list">
+            ${posts.map(p => `<div class="post-item" onclick="editPost('${p}', this)">${p}</div>`).join('')}
+          </div>
+        </aside>
+
+        <main
+          id="editor-layout"
+          style="display:none; grid-column: 2 / span 2; grid-template-columns: 1fr 1fr; flex: 1;"
+        >
+          <div class="tiptap-editor">
+            <div class="toolbar" id="toolbar"></div>
+            <div id="editor"></div>
+            <div class="footer-actions">
+              <div>
+                <span id="status-dot" class="status-dot"></span>
+                <span
+                  id="status-text"
+                  style="font-size:0.85rem; color: var(--text-muted);"
+                  >Ready</span
+                >
+              </div>
+              <button
+                onclick="savePost()"
+                style="padding: 0.4rem 0.8rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer;"
+                >Save Changes</button
+              >
+            </div>
+          </div>
+          <div class="preview-area">
+            <div
+              class="toolbar"
+              style="justify-content:center; font-weight:700; font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;"
+            >
+              Preview
+            </div>
+            <div id="preview" class="preview-content"></div>
+          </div>
+        </main>
+
+        <div
+          id="empty-state"
+          style="grid-column: 2 / span 2; display:flex; align-items:center; justify-content:center; color:#94a3b8; flex-direction:column;"
+        >
+          <div style="font-size:3rem; opacity:0.3; margin-bottom:1rem;">📝</div>
+          <div style="font-weight:500;">Select a post to begin</div>
+        </div>
+      </div>
+      
+      <div id="view-docs" class="main-container" style="display:none; padding: 2rem;">
+        <div style="grid-column: 1 / span 3; background: white; border-radius: 0.75rem; border: 1px solid var(--border-color); padding: 1.5rem;">
+          <h3>Component Documentation</h3>
+          <div id="docs-content" class="preview-content">Loading...</div>
+        </div>
+      </div>
+
+      <div id="view-settings" class="main-container" style="display:none; padding: 2rem;">
+        <div style="grid-column: 1 / span 3; background: white; border-radius: 0.75rem; border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+          <h3>Site Settings</h3>
+          <div>
+            <label style="display:block; font-weight:600; font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">Configuration (mofuri.yaml)</label>
+            <textarea id="settings-editor" style="width:100%; height: 300px; font-family: monospace; padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background:#f8fafc;"></textarea>
+          </div>
+          <div id="settings-info" style="font-size:0.85rem; color:var(--text-muted);"></div>
+          <button onclick="saveSettings()" style="width:fit-content; padding: 0.6rem 1.2rem; background: var(--accent); color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight:600;">Save Selection & Config</button>
+        </div>
+      </div>
+
+      <script type="module">
+        let currentPath = "";
+        import { Editor } from "https://esm.sh/@tiptap/core";
+        import StarterKit from "https://esm.sh/@tiptap/starter-kit";
+        import Placeholder from "https://esm.sh/@tiptap/extension-placeholder";
+
+        const toolbar = document.getElementById("toolbar");
+        const actions = [
+          { label: "B", command: "toggleBold" },
+          { label: "I", command: "toggleItalic" },
+          { label: "H1", command: "toggleHeading", attrs: { level: 1 } },
+          { label: "H2", command: "toggleHeading", attrs: { level: 2 } },
+        ];
+        actions.forEach((a) => {
+          const btn = document.createElement("button");
+          btn.textContent = a.label;
+          btn.onclick = () => {
+            if (a.attrs)
+              window.editor.chain().focus()[a.command](a.attrs).run();
+            else window.editor.chain().focus()[a.command]().run();
+          };
+          toolbar.appendChild(btn);
+        });
+
+        window.editor = new Editor({
+          element: document.querySelector("#editor"),
+          extensions: [
+            StarterKit,
+            Placeholder.configure({
+              placeholder: "Start writing your story...",
+            }),
+          ],
+          onUpdate: ({ editor }) => {
+            document.getElementById("status-dot").className = "status-dot";
+            document.getElementById("status-text").textContent =
+              "Unsaved changes";
+            updatePreview();
+          },
+        });
+
+        window.switchTab = function(tab) {
+          const views = ['editor', 'docs', 'settings'];
+          views.forEach(v => {
+            const el = document.getElementById("view-" + v);
+            if (el) el.style.display = v === tab ? "grid" : "none";
+            
+            const nav = document.getElementById("nav-" + v);
+            if (nav) {
+              if (v === tab) nav.classList.add("active");
+              else nav.classList.remove("active");
+            }
+          });
+          
+          if (tab === 'docs') loadDocs();
+          if (tab === 'settings') loadSettings();
+        };
+
+        window.editPost = async function(path, el) {
+          document.querySelectorAll(".post-item").forEach(l => l.classList.remove("active"));
+          el.classList.add("active");
+          currentPath = path;
+          document.getElementById("file-info").textContent = "Editing: " + path;
+          document.getElementById("editor-layout").style.display = "grid";
+          document.getElementById("empty-state").style.display = "none";
+          
+          const res = await fetch("/api/post-content?path=" + path);
+          const markdown = await res.text();
+          // ... (simplified for now)
+          window.editor.commands.setContent(markdown);
+          updatePreview();
+        };
+
+        window.savePost = async function() {
+          if (!currentPath) return;
+          const content = window.editor.getHTML();
+          // Convert HTML to Markdown (using Turndown which is loaded in head)
+          const turndownService = new TurndownService();
+          const markdown = turndownService.turndown(content);
+          
+          document.getElementById("status-text").textContent = "Saving...";
+          const res = await fetch("/api/save-post", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: currentPath, content: markdown })
+          });
+          
+          if (res.ok) {
+            document.getElementById("status-dot").className = "status-dot active";
+            document.getElementById("status-text").textContent = "Saved";
+          } else {
+            alert("Save failed");
+          }
+        };
+
+        async function updatePreview() {
+          const content = window.editor.getHTML();
+          const res = await fetch("/api/preview", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content })
+          });
+          const html = await res.text();
+          document.getElementById("preview").innerHTML = html;
+        }
+
+        async function loadDocs() {
+          const res = await fetch("/api/docs");
+          const docs = await res.json();
+          const container = document.getElementById("docs-content");
+          container.innerHTML = docs.map(d => `
+            <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <h4 style="color:var(--accent); margin:0;">${d.tag}</h4>
+                <code style="font-size:0.8rem; background:#f1f5f9; padding:0.2rem 0.4rem; border-radius:4px;">${d.functionName}</code>
+              </div>
+              <p style="font-size:0.9rem; margin-bottom:0.5rem;">${d.description}</p>
+              <pre style="background:#f8fafc; padding:0.5rem; font-size:0.8rem; border-radius:4px; border:1px solid #eee;">${d.props}</pre>
+              <div style="font-size:0.7rem; color:#94a3b8; margin-top:0.4rem;">Source: ${d.path}</div>
+            </div>
+          `).join('');
+        }
+
+        async function loadSettings() {
+          const res = await fetch("/api/settings");
+          const data = await res.json();
+          document.getElementById("settings-editor").value = JSON.stringify(data.config, null, 2);
+          
+          let info = `<strong>Theme:</strong> ${data.theme.name || 'Default'} <br>`;
+          info += `<strong>Plugins:</strong> ${data.plugins.map(p => p.name || p.id).join(', ')}`;
+          document.getElementById("settings-info").innerHTML = info;
+        }
+
+        window.saveSettings = async function() {
+          const content = document.getElementById("settings-editor").value;
+          try {
+            const config = JSON.parse(content);
+            const res = await fetch("/api/settings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(config)
+            });
+            if (res.ok) alert("Settings saved successfully!");
+            else alert("Save failed");
+          } catch (e) {
+            alert("Invalid JSON configuration");
+          }
+        }
+      </script>
+    </body>
+  </html>
+</template>
