@@ -6,6 +6,7 @@
 </script>
 
 <template>
+  <!DOCTYPE html>
   <html lang="ja">
     <head>
       <meta charset="UTF-8" />
@@ -201,131 +202,132 @@
       </style>
     </head>
     <body>
-      <header>
-        <div class="nav">
-          <h1 onclick="switchTab('editor')" style="cursor:pointer">
-            🐾 mofuri
-          </h1>
-          <div
-            class="nav-item active"
-            id="nav-editor"
-            onclick="switchTab('editor')"
-          >
-            Editor
-          </div>
-          <div class="nav-item" id="nav-docs" onclick="switchTab('docs')">
-            Docs
-          </div>
-          <div
-            class="nav-item"
-            id="nav-settings"
-            onclick="switchTab('settings')"
-          >
-            Settings
-          </div>
-        </div>
-        <div
-          id="file-info"
-          style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;"
-        ></div>
+      <header style="background:white; border-bottom:1px solid var(--border-color); padding: 0.5rem 2rem; display:flex; justify-content:space-between; align-items:center;">
+        <m-row align="middle" gutter="20" style="width:100%">
+          <m-col span="4">
+            <h1 onclick="switchTab('editor')" style="cursor:pointer; color:var(--accent); margin:0; font-size:1.25rem; font-weight:800;">
+              🐾 mofuri
+            </h1>
+          </m-col>
+          <m-col span="14">
+            <div class="nav" style="display:flex; gap:1rem;">
+              <m-button id="nav-editor" type="info" size="small" onclick="switchTab('editor')">Editor</m-button>
+              <m-button id="nav-docs" type="info" size="small" onclick="switchTab('docs')">Docs</m-button>
+              <m-button id="nav-settings" type="info" size="small" onclick="switchTab('settings')">Settings</m-button>
+            </div>
+          </m-col>
+          <m-col span="6" style="text-align:right">
+            <div id="file-info" style="font-size:0.75rem; color:var(--text-muted);"></div>
+          </m-col>
+        </m-row>
       </header>
 
-      <div id="view-editor" class="main-container">
-        <aside class="sidebar">
-          <h3>Posts</h3>
-          <div id="posts-list">
-            ${posts.map(p => `<div class="post-item" onclick="editPost('${p}', this)">${p}</div>`).join('')}
-          </div>
-        </aside>
+      <div id="view-editor">
+        <m-row>
+          <m-col span="5" style="border-right:1px solid var(--border-color); background:white; height:calc(100vh - 60px); overflow-y:auto; padding: 1.5rem;">
+            <h3 style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:1rem;">Posts</h3>
+            <div id="posts-list">
+              ${posts.map(p => `<div class="post-item" onclick="editPost('${p}', this)">${p}</div>`).join('')}
+            </div>
+          </m-col>
 
-        <main
-          id="editor-layout"
-          style="display:none; grid-column: 2 / span 2; grid-template-columns: 1fr 1fr; flex: 1;"
-        >
-          <div class="tiptap-editor">
-            <div class="toolbar" id="toolbar"></div>
-            <div id="editor"></div>
-            <div class="footer-actions">
+          <m-col span="19" style="padding: 1rem; height:calc(100vh - 60px); overflow-y:auto;">
+            <div id="editor-layout" style="display:none;">
+              <m-row gutter="20">
+                <m-col span="12">
+                  <div class="tiptap-editor" style="background:white; border:1px solid var(--border-color); border-radius:0.75rem; overflow:hidden; display:flex; flex-direction:column; height:calc(100vh - 120px);">
+                    <m-toolbar id="toolbar"></m-toolbar>
+                    <div id="editor" style="flex:1; overflow-y:auto; padding:1.5rem; outline:none;"></div>
+                    <div class="footer-actions" style="padding:1rem; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
+                      <div>
+                        <span id="status-dot" class="status-dot"></span>
+                        <span id="status-text" style="font-size:0.85rem; color:var(--text-muted);">Ready</span>
+                      </div>
+                      <m-button type="primary" onclick="savePost()">Save Changes</m-button>
+                    </div>
+                  </div>
+                </m-col>
+                <m-col span="12">
+                  <div class="preview-area" style="background:white; border:1px solid var(--border-color); border-radius:0.75rem; overflow:hidden; height:calc(100vh - 120px); display:flex; flex-direction:column;">
+                    <div style="padding:0.5rem; border-bottom:1px solid var(--border-color); background:#f8fafc; text-align:center; font-weight:700; font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Preview</div>
+                    <div id="preview" class="preview-content" style="flex:1; overflow-y:auto; padding:1.5rem;"></div>
+                  </div>
+                </m-col>
+              </m-row>
+            </div>
+
+            <div id="empty-state" style="display:flex; align-items:center; justify-content:center; height:100%; color:#94a3b8; flex-direction:column;">
+              <div style="font-size:3rem; opacity:0.3; margin-bottom:1rem;">📝</div>
+              <div style="font-weight:500;">Select a post to begin</div>
+            </div>
+          </m-col>
+        </m-row>
+      </div>
+
+      <div id="view-docs" style="display:none; padding: 2rem;">
+        <m-row>
+          <m-col span="24">
+            <div style="background: white; border-radius: 0.75rem; border: 1px solid var(--border-color); padding: 1.5rem;">
+              <h3>Component Documentation</h3>
+              <div id="docs-content">Loading...</div>
+            </div>
+          </m-col>
+        </m-row>
+      </div>
+
+      <div id="view-settings" style="display:none; padding: 2rem;">
+        <m-row>
+          <m-col span="24">
+            <div style="background: white; border-radius: 0.75rem; border: 1px solid var(--border-color); padding: 1.5rem; display:flex; flex-direction:column; gap:1rem;">
+              <h3>Site Settings</h3>
               <div>
-                <span id="status-dot" class="status-dot"></span>
-                <span
-                  id="status-text"
-                  style="font-size:0.85rem; color: var(--text-muted);"
-                  >Ready</span
-                >
+                <label style="display:block; font-weight:600; font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">Configuration (mofuri.yaml)</label>
+                <textarea id="settings-editor" style="width:100%; height:300px; font-family:monospace; padding:1rem; border:1px solid var(--border-color); border-radius:0.5rem; background:#f8fafc;"></textarea>
               </div>
-              <button
-                onclick="savePost()"
-                style="padding: 0.4rem 0.8rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer;"
-                >Save Changes</button
-              >
+              <div id="settings-info"></div>
+              <m-button type="primary" onclick="saveSettings()">Save Configuration</m-button>
             </div>
-          </div>
-          <div class="preview-area">
-            <div
-              class="toolbar"
-              style="justify-content:center; font-weight:700; font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;"
-            >
-              Preview
-            </div>
-            <div id="preview" class="preview-content"></div>
-          </div>
-        </main>
-
-        <div
-          id="empty-state"
-          style="grid-column: 2 / span 2; display:flex; align-items:center; justify-content:center; color:#94a3b8; flex-direction:column;"
-        >
-          <div style="font-size:3rem; opacity:0.3; margin-bottom:1rem;">📝</div>
-          <div style="font-weight:500;">Select a post to begin</div>
-        </div>
-      </div>
-      
-      <div id="view-docs" class="main-container" style="display:none; padding: 2rem;">
-        <div style="grid-column: 1 / span 3; background: white; border-radius: 0.75rem; border: 1px solid var(--border-color); padding: 1.5rem;">
-          <h3>Component Documentation</h3>
-          <div id="docs-content" class="preview-content">Loading...</div>
-        </div>
-      </div>
-
-      <div id="view-settings" class="main-container" style="display:none; padding: 2rem;">
-        <div style="grid-column: 1 / span 3; background: white; border-radius: 0.75rem; border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-          <h3>Site Settings</h3>
-          <div>
-            <label style="display:block; font-weight:600; font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem;">Configuration (mofuri.yaml)</label>
-            <textarea id="settings-editor" style="width:100%; height: 300px; font-family: monospace; padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background:#f8fafc;"></textarea>
-          </div>
-          <div id="settings-info" style="font-size:0.85rem; color:var(--text-muted);"></div>
-          <button onclick="saveSettings()" style="width:fit-content; padding: 0.6rem 1.2rem; background: var(--accent); color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight:600;">Save Selection & Config</button>
-        </div>
+          </m-col>
+        </m-row>
       </div>
 
       <script type="module">
-        let currentPath = "";
         import { Editor } from "https://esm.sh/@tiptap/core";
         import StarterKit from "https://esm.sh/@tiptap/starter-kit";
         import Placeholder from "https://esm.sh/@tiptap/extension-placeholder";
 
-        const toolbar = document.getElementById("toolbar");
+        // State
+        let currentPath = "";
+
+        // Initialization
+        const editorElement = document.querySelector("#editor");
+        const toolbarElement = document.getElementById("toolbar");
+        const statusDot = document.getElementById("status-dot");
+        const statusText = document.getElementById("status-text");
+        const previewElement = document.getElementById("preview");
+        const fileInfoElement = document.getElementById("file-info");
+
         const actions = [
           { label: "B", command: "toggleBold" },
           { label: "I", command: "toggleItalic" },
           { label: "H1", command: "toggleHeading", attrs: { level: 1 } },
           { label: "H2", command: "toggleHeading", attrs: { level: 2 } },
         ];
+
         actions.forEach((a) => {
           const btn = document.createElement("button");
+          btn.className = "el-button el-button--small";
           btn.textContent = a.label;
           btn.onclick = () => {
             if (a.attrs)
               window.editor.chain().focus()[a.command](a.attrs).run();
             else window.editor.chain().focus()[a.command]().run();
           };
-          toolbar.appendChild(btn);
+          toolbarElement.appendChild(btn);
         });
 
         window.editor = new Editor({
-          element: document.querySelector("#editor"),
+          element: editorElement,
           extensions: [
             StarterKit,
             Placeholder.configure({
@@ -333,64 +335,80 @@
             }),
           ],
           onUpdate: ({ editor }) => {
-            document.getElementById("status-dot").className = "status-dot";
-            document.getElementById("status-text").textContent =
-              "Unsaved changes";
+            setUnsaved();
             updatePreview();
           },
         });
 
+        // Functions
+        function setUnsaved() {
+          statusDot.className = "status-dot";
+          statusText.textContent = "Unsaved changes";
+        }
+
+        function setSaved() {
+          statusDot.className = "status-dot active";
+          statusText.textContent = "All changes saved";
+        }
+
         window.switchTab = function(tab) {
-          const views = ['editor', 'docs', 'settings'];
-          views.forEach(v => {
+          const views = ["editor", "docs", "settings"];
+          views.forEach((v) => {
             const el = document.getElementById("view-" + v);
-            if (el) el.style.display = v === tab ? "grid" : "none";
-            
+            if (el) el.style.display = v === tab ? "block" : "none";
+
             const nav = document.getElementById("nav-" + v);
             if (nav) {
-              if (v === tab) nav.classList.add("active");
-              else nav.classList.remove("active");
+              const btn = nav.querySelector("button") || nav;
+              if (v === tab) {
+                btn.classList.add("el-button--primary");
+                btn.classList.remove("el-button--info");
+              } else {
+                btn.classList.add("el-button--info");
+                btn.classList.remove("el-button--primary");
+              }
             }
           });
-          
-          if (tab === 'docs') loadDocs();
-          if (tab === 'settings') loadSettings();
+
+          if (tab === "docs") loadDocs();
+          if (tab === "settings") loadSettings();
         };
 
         window.editPost = async function(path, el) {
           document.querySelectorAll(".post-item").forEach(l => l.classList.remove("active"));
           el.classList.add("active");
           currentPath = path;
-          document.getElementById("file-info").textContent = "Editing: " + path;
-          document.getElementById("editor-layout").style.display = "grid";
+          fileInfoElement.textContent = "Editing: " + path;
+          document.getElementById("editor-layout").style.display = "block";
           document.getElementById("empty-state").style.display = "none";
-          
+
           const res = await fetch("/api/post-content?path=" + path);
           const markdown = await res.text();
-          // ... (simplified for now)
+          
           window.editor.commands.setContent(markdown);
+          setSaved();
           updatePreview();
         };
 
         window.savePost = async function() {
           if (!currentPath) return;
           const content = window.editor.getHTML();
-          // Convert HTML to Markdown (using Turndown which is loaded in head)
+          
           const turndownService = new TurndownService();
           const markdown = turndownService.turndown(content);
-          
-          document.getElementById("status-text").textContent = "Saving...";
-          const res = await fetch("/api/save-post", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ path: currentPath, content: markdown })
-          });
-          
-          if (res.ok) {
-            document.getElementById("status-dot").className = "status-dot active";
-            document.getElementById("status-text").textContent = "Saved";
-          } else {
-            alert("Save failed");
+
+          statusText.textContent = "Saving...";
+          try {
+            const res = await fetch("/api/save-post", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ path: currentPath, content: markdown }),
+            });
+
+            if (res.ok) setSaved();
+            else alert("Save failed");
+          } catch (e) {
+            alert("Network error: " + e.message);
           }
         };
 
@@ -399,17 +417,19 @@
           const res = await fetch("/api/preview", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content })
+            body: JSON.stringify({ content }),
           });
           const html = await res.text();
-          document.getElementById("preview").innerHTML = html;
+          previewElement.innerHTML = html;
         }
 
         async function loadDocs() {
           const res = await fetch("/api/docs");
           const docs = await res.json();
           const container = document.getElementById("docs-content");
-          container.innerHTML = docs.map(d => `
+          container.innerHTML = docs
+            .map(
+              (d) => `
             <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                 <h4 style="color:var(--accent); margin:0;">${d.tag}</h4>
@@ -417,18 +437,27 @@
               </div>
               <p style="font-size:0.9rem; margin-bottom:0.5rem;">${d.description}</p>
               <pre style="background:#f8fafc; padding:0.5rem; font-size:0.8rem; border-radius:4px; border:1px solid #eee;">${d.props}</pre>
-              <div style="font-size:0.7rem; color:#94a3b8; margin-top:0.4rem;">Source: ${d.path}</div>
             </div>
-          `).join('');
+          `,
+            )
+            .join("");
         }
 
         async function loadSettings() {
           const res = await fetch("/api/settings");
           const data = await res.json();
-          document.getElementById("settings-editor").value = JSON.stringify(data.config, null, 2);
-          
-          let info = `<strong>Theme:</strong> ${data.theme.name || 'Default'} <br>`;
-          info += `<strong>Plugins:</strong> ${data.plugins.map(p => p.name || p.id).join(', ')}`;
+          document.getElementById("settings-editor").value = JSON.stringify(
+            data.config,
+            null,
+            2,
+          );
+
+          let info = `<strong>Theme:</strong> ${
+            data.theme.name || "Default"
+          } <br>`;
+          info += `<strong>Plugins:</strong> ${data.plugins
+            .map((p) => p.name || p.id)
+            .join(", ")}`;
           document.getElementById("settings-info").innerHTML = info;
         }
 
@@ -439,14 +468,14 @@
             const res = await fetch("/api/settings", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(config)
+              body: JSON.stringify(config),
             });
             if (res.ok) alert("Settings saved successfully!");
             else alert("Save failed");
           } catch (e) {
             alert("Invalid JSON configuration");
           }
-        }
+        };
       </script>
     </body>
   </html>
