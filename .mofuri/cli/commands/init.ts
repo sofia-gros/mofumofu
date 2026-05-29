@@ -6,7 +6,7 @@ export async function initAction() {
   console.log("🚀 Initializing Mofuri project...");
 
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  const templateDir = join(__dirname, "..", "templates");
+  const templateDir = join(__dirname, "..", "..", "..");
   const targetDir = process.cwd();
 
   try {
